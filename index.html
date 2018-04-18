@@ -1,0 +1,308 @@
+package amref.org.mjali.nhif_registration.services;
+
+/**
+ * Created by Mjali on 11/6/2017.
+ */
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Bundle;
+import android.util.Log;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import amref.org.mjali.nhif_registration.Activity_Registration;
+import amref.org.mjali.nhif_registration.Config;
+import amref.org.mjali.nhif_registration.SQLiteHandler;
+
+public class NetworkStateChecker extends BroadcastReceiver {
+
+    //context and database helper object
+    private Context context;
+    private SQLiteHandler db;
+
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+
+        this.context = context;
+
+        db = new SQLiteHandler(context);
+
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+        //if there is a network
+        if (activeNetwork != null) {
+            //if connected to wifi or mobile data plan
+            if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI || activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+
+                //getting all the unsynced details
+                Cursor cursor = db.getUnsyncedNames();
+                if (cursor.moveToFirst()) {
+                    do {
+                        //calling the method to save the unsynced details to SQL Server
+                        saveDetails(
+                                cursor.getInt(cursor.getColumnIndex(SQLiteHandler.COLUMNID_REG)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.SURNAME)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.SPONSOR_CODE)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.NHIF_NO)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.OTHER_NAMES)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.IDNO)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.DOB)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.COUNTY)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.SUBCOUNTY)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.MOBILE_NO)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.EMAIL)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.POSTAL_ADDRESS)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.POSTAL_CODE)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.TOWN_NAME)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.GENDER_TXT)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.NEAREST_BRANCH)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.PREFERRED_FACILITY)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.MARITAL_STATUS)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.MEMBER_IMAGE)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.MEMBER_ID_COPY)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.STATUS)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHV)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_RELATIONSHIP1)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_RELATIONSHIP2)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_RELATIONSHIP3)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_RELATIONSHIP4)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_RELATIONSHIP5)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_RELATIONSHIP6)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_RELATIONSHIP7)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_RELATIONSHIP8)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_RELATIONSHIP9)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_RELATIONSHIP10)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_NAME)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_NAME2)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_NAME3)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_NAME4)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_NAME5)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_NAME6)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_NAME7)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_NAME8)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_NAME9)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_NAME10)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_BIRTH)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_BIRTH2)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_BIRTH3)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_BIRTH4)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_BIRTH5)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_BIRTH6)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_BIRTH7)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_BIRTH8)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_BIRTH9)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_BIRTH10)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_GENDER)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_GENDER2)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_GENDER3)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_GENDER4)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_GENDER5)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_GENDER6)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_GENDER7)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_GENDER8)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_GENDER9)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_GENDER10)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_IMAGE)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_IMAGE2)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_IMAGE3)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_IMAGE4)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_IMAGE5)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_IMAGE6)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_IMAGE7)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_IMAGE8)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_IMAGE9)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_IMAGE10)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_CERT)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_CERT2)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_CERT3)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_CERT4)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_CERT5)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_CERT6)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_CERT7)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_CERT8)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_CERT9)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.CHILD_CERT10)),
+                                cursor.getString(cursor.getColumnIndex(SQLiteHandler.REG_DATE))
+
+                        );
+
+                        long records = db.count();
+                        Bundle extras = intent.getExtras();
+                        Intent i = new Intent("net.simplifiedcoding.datasaved");
+                        i.putExtra("message", extras.getString(String.valueOf(records)));
+                        context.sendBroadcast(i);
+
+                    } while (cursor.moveToNext());
+                }
+            }
+        }
+    }
+
+    /*
+    * method taking two arguments
+    * name that is to be saved and id of the name from SQLite
+    * if the name is successfully sent
+    * we will update the status as synced in SQLite
+    * */
+    private void saveDetails(final int id, final String Surname, final String SponsorCode, final String NhifNo, final String OtherMemberNames, 
+                            final String MemberIdNo, final String MemberDob, final String county, final String subcounty, final String MemberPhoneNumber,
+                             final String MemberEmail, final String MemberPostal, final String MemberPostalCode,  final String MemberPostalTown,
+                             final String MemberGender,  final String NearestBranch,final String PreferredFacility,
+                             final String MemberMaritalStatus, final String MemberImage, final String MemberIdCopy,
+                             final String Status, final String ChvDetail, final String Relationship1,
+                             final String Relationship2, final String Relationship3, final String Relationship4, final String Relationship5,
+                             final String Relationship6, final String Relationship7, final String Relationship8, final String Relationship9,
+                             final String Relationship10, final String ChildName1, final String ChildName2,
+                             final String ChildName3, final String ChildName4, final String ChildName5, final String ChildName6,
+                             final String ChildName7, final String ChildName8, final String ChildName9, final String ChildName10,
+                             final String ChildBirth1, final String ChildBirth2, final String ChildBirth3, final String ChildBirth4,
+                             final String ChildBirth5, final String ChildBirth6, final String ChildBirth7, final String ChildBirth8,
+                             final String ChildBirth9, final String ChildBirth10, final String ChildGender1, final String ChildGender2,
+                             final String ChildGender3, final String ChildGender4, final String ChildGender5, final String ChildGender6,
+                             final String ChildGender7, final String ChildGender8, final String ChildGender9, final String ChildGender10,
+                             final String ChildImage1, final String ChildImage2, final String ChildImage3, final String ChildImage4,
+                             final String ChildImage5, final String ChildImage6, final String ChildImage7, final String ChildImage8,
+                             final String ChildImage9, final String ChildImage10, final String ChildBirthCert1,
+                             final String ChildBirthCert2, final String ChildBirthCert3, final String ChildBirthCert4, final String ChildBirthCert5,
+                             final String ChildBirthCert6, final String ChildBirthCert7, final String ChildBirthCert8, final String ChildBirthCert9,
+                             final String ChildBirthCert10, final String RegDate) {
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, Config.URL_ADD,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONObject obj = new JSONObject(response);
+                            if (!obj.getBoolean("error")) {
+                                //updating the status in sqlite
+                                db.updateNameStatus(id, Activity_Registration.NAME_SYNCED_WITH_SERVER);
+                                //db.deleteSreeningData();
+                                db.deleteReg();
+
+                                //sending the broadcast to refresh the list
+                                context.sendBroadcast(new Intent(Activity_Registration.DATA_SAVED_BROADCAST));
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put(Config.SURNAME, Surname);
+                params.put(Config.NHIF_NO, NhifNo);
+                params.put(Config.OTHER_NAMES, OtherMemberNames);
+                params.put(Config.IDNO, MemberIdNo);
+                params.put(Config.DOB, MemberDob);
+                params.put(Config.MOBILE_NO, MemberPhoneNumber);
+                params.put(Config.EMAIL, MemberEmail);
+                params.put(Config.POSTAL_ADDRESS, MemberPostal);
+                params.put(Config.POSTAL_CODE, MemberPostalCode);
+                params.put(Config.GENDER_TXT, MemberGender);
+                params.put(Config.NEAREST_BRANCH, NearestBranch);
+                params.put(Config.PREFERRED_FACILITY, PreferredFacility);
+                params.put(Config.CONTRIBUTOR_COUNTY, county);
+                params.put(Config.CONTRIBUTOR_SUBCOUNTY, subcounty);
+                params.put(Config.TOWN_NAME, MemberPostalTown);
+                params.put(Config.SPONSOR_CODE, SponsorCode);
+                params.put(Config.MEMBER_IMAGE, MemberImage);
+                params.put(Config.MEMBER_ID_COPY, MemberIdCopy);
+
+                params.put(Config.MARITAL_STATUS, MemberMaritalStatus);
+                params.put(Config.STATUS, Status);
+                params.put(Config.CHV, ChvDetail);
+                params.put(Config.CHILD_RELATIONSHIP1, Relationship1);
+                params.put(Config.CHILD_RELATIONSHIP2, Relationship2);
+                params.put(Config.CHILD_RELATIONSHIP3, Relationship3);
+                params.put(Config.CHILD_RELATIONSHIP4, Relationship4);
+                params.put(Config.CHILD_RELATIONSHIP5, Relationship5);
+                params.put(Config.CHILD_RELATIONSHIP6, Relationship6);
+                params.put(Config.CHILD_RELATIONSHIP7, Relationship7);
+                params.put(Config.CHILD_RELATIONSHIP8, Relationship8);
+                params.put(Config.CHILD_RELATIONSHIP9, Relationship9);
+                params.put(Config.CHILD_RELATIONSHIP10, Relationship10);
+                params.put(Config.CHILD_GENDER, ChildGender1);
+                params.put(Config.CHILD_GENDER2, ChildGender2);
+                params.put(Config.CHILD_GENDER3, ChildGender3);
+                params.put(Config.CHILD_GENDER4, ChildGender4);
+                params.put(Config.CHILD_GENDER5, ChildGender5);
+                params.put(Config.CHILD_GENDER6, ChildGender6);
+                params.put(Config.CHILD_GENDER7, ChildGender7);
+                params.put(Config.CHILD_GENDER8, ChildGender8);
+                params.put(Config.CHILD_GENDER9, ChildGender9);
+                params.put(Config.CHILD_GENDER10, ChildGender10);
+                params.put(Config.CHILD_NAME, ChildName1);
+                params.put(Config.CHILD_NAME2, ChildName2);
+                params.put(Config.CHILD_NAME3, ChildName3);
+                params.put(Config.CHILD_NAME4, ChildName4);
+                params.put(Config.CHILD_NAME5, ChildName5);
+                params.put(Config.CHILD_NAME6, ChildName6);
+                params.put(Config.CHILD_NAME7, ChildName7);
+                params.put(Config.CHILD_NAME8, ChildName8);
+                params.put(Config.CHILD_NAME9, ChildName9);
+                params.put(Config.CHILD_NAME10, ChildName10);
+                params.put(Config.CHILD_BIRTH, ChildBirth1);
+                params.put(Config.CHILD_BIRTH2, ChildBirth2);
+                params.put(Config.CHILD_BIRTH3, ChildBirth3);
+                params.put(Config.CHILD_BIRTH4, ChildBirth4);
+                params.put(Config.CHILD_BIRTH5, ChildBirth5);
+                params.put(Config.CHILD_BIRTH6, ChildBirth6);
+                params.put(Config.CHILD_BIRTH7, ChildBirth7);
+                params.put(Config.CHILD_BIRTH8, ChildBirth8);
+                params.put(Config.CHILD_BIRTH9, ChildBirth9);
+                params.put(Config.CHILD_BIRTH10, ChildBirth10);
+                params.put(Config.CHILD_IMAGE, ChildImage1);
+                params.put(Config.CHILD_IMAGE2, ChildImage2);
+                params.put(Config.CHILD_IMAGE3, ChildImage3);
+                params.put(Config.CHILD_IMAGE4, ChildImage4);
+                params.put(Config.CHILD_IMAGE5, ChildImage5);
+                params.put(Config.CHILD_IMAGE6, ChildImage6);
+                params.put(Config.CHILD_IMAGE7, ChildImage7);
+                params.put(Config.CHILD_IMAGE8, ChildImage8);
+                params.put(Config.CHILD_IMAGE9, ChildImage9);
+                params.put(Config.CHILD_IMAGE10, ChildImage10);
+                params.put(Config.CHILD_CERT, ChildBirthCert1);
+                params.put(Config.CHILD_CERT2, ChildBirthCert2);
+                params.put(Config.CHILD_CERT3, ChildBirthCert3);
+                params.put(Config.CHILD_CERT4, ChildBirthCert4);
+                params.put(Config.CHILD_CERT5, ChildBirthCert5);
+                params.put(Config.CHILD_CERT6, ChildBirthCert6);
+                params.put(Config.CHILD_CERT7, ChildBirthCert7);
+                params.put(Config.CHILD_CERT8, ChildBirthCert8);
+                params.put(Config.CHILD_CERT9, ChildBirthCert9);
+                params.put(Config.CHILD_CERT10, ChildBirthCert10);
+                params.put(Config.REG_DATE, RegDate);
+
+                Log.i("Parameters", "Parameters Found" + params);
+
+                return params;
+            }
+        };
+
+        VolleySingleton.getInstance(context).addToRequestQueue(stringRequest);
+    }
+
+}
